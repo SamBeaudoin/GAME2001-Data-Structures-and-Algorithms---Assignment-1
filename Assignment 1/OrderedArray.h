@@ -1,46 +1,44 @@
 #pragma once
 #include <cassert>
+#include "Array.h"
 
 template<class T>
-class UnorderedArray
+class OrderedArray:Array
 {
 public:
-	// Constructor
-	UnorderedArray(int size, int growBy = 1) :
-		m_array(NULL), m_maxSize(0), m_growSize(0), m_numElements(0)
-	{
-		if (size)	// Is this a legal size for an array?
-		{
-			m_maxSize = size;
-			m_array = new T[m_maxSize];		// Dynamically allocating an array to m_maxSize
-			memset(m_array, 0, sizeof(T) * m_maxSize);	// Explicitly set 0 to all elements in the array
-
-			m_growSize = ((growBy > 0) ? growBy : 0);
-		}
-	}
-	// Destructor
-	~UnorderedArray()
-	{
-		if (m_array != nullptr)
-		{
-			delete[] m_array;
-			m_array = nullptr;
-		}
-	}
-	// Insertion
-	// Fast insertion for UnorderedArray -- Big-O is O(1)
+	
+	// Insertion -- Big-O = O(N)
 	void push(T val)
 	{
-		assert(m_array != nullptr); // Debugging purposes
+		assert(m_array != nullptr);
 
-		if (m_numElements >= m_maxSize)	// Check if the array has to expand to accommodate the new data.
+		if (m_numElements >= m_maxSize)
 		{
 			Expand();
 		}
 
-		// My array has space for a new value. Let's add it!
-		m_array[m_numElements] = val;
+		int i, k;	// i - Index to be inserted. k - Used for shifting purposes
+		// Step 1: Find the index to insert val
+		for (i = 0; i < m_numElements; i++)
+		{
+			if (m_array[i] > val)
+			{
+				break;
+			}
+		}
+
+		// Step 2: Shift everything to the right of the index(i) forward by one. Work backwards
+		for (k = m_numElements; k > i; k--)
+		{
+			m_array[k] = m_array[k - 1];
+		}
+
+		// Step 3: Insert val into the array at index
+		m_array[i] = val;
+
 		m_numElements++;
+
+		// return i;
 	}
 	// Deletion (2 ways)
 	// Remove the last item inserted into the array
@@ -75,21 +73,12 @@ public:
 		m_numElements--;
 	}
 	// Searching
-	// Linear Search
-	int search(T val)
+	// Binary Search
+	int search(T searchKey)
 	{
-		assert(m_array != nullptr);
-
-		// Brute-force Search
-		for (int i = 0; i < m_numElements; i++)
-		{
-			if (m_array[i] == val)
-			{
-				return i;	// Return the index of where the item is located in the array
-			}
-		}
-
-		return -1;
+		// Call to binary search recursive function
+		// Binary Search: searchKey, initial lowerBound, initial upperBound
+		return binarySearch(searchKey, 0, m_numElements - 1);
 	}
 	// Overloaded [] operator
 	T& operator[](int index)
@@ -121,7 +110,46 @@ public:
 		m_growSize = val;
 	}
 private:
-// Private functions
+	// Private functions
+	// Recursive Binary Search
+	int binarySearch(T searchKey, int lowerBound, int upperBound)
+	{
+		assert(m_array != nullptr);
+		assert(lowerBound >= 0);
+		assert(upperBound < m_numElements);
+
+		// Bitwise divide by 2
+		int current = (lowerBound + upperBound) >> 1;
+
+		// Check 1 "Base case": Did we find the searchKey at the current index?
+		if (m_array[current] == searchKey)
+		{
+			// We found it! Return the index
+			return current;
+		}
+		// Check 2 "Base base": Are we done searching? 
+		else if (lowerBound > upperBound)
+		{
+			// Did not find searchKey within m_array
+			return -1;
+		}
+		// Check 3: Which half of the array is searchKey in?
+		else
+		{
+			if (m_array[current] < searchKey)
+			{
+				// Search the upper half of the array
+				return binarySearch(searchKey, current + 1, upperBound);
+			}
+			else
+			{
+				// Search the lower half of the array
+				return binarySearch(searchKey, lowerBound, current - 1);
+			}
+		}
+
+		return -1;
+	}
 	// Expansion
 	bool Expand()
 	{
@@ -146,11 +174,11 @@ private:
 		temp = nullptr;
 
 		m_maxSize += m_growSize;
-		
+
 		return true;
 	}
 private:
-// Private Variables
+	// Private Variables
 	T* m_array;			// Pointer to the beginning of the array
 
 	int m_maxSize;		// Maximum size of the array
