@@ -2,6 +2,8 @@
 #include <assert.h>
 #include <iostream>
 
+using namespace std;
+
 template<class T>
 class Array
 {
@@ -24,7 +26,6 @@ public:
 			m_maxSize = size;
 			m_array = new T[m_maxSize];		// Dynamically allocating an array to m_maxSize
 			memset(m_array, 0, sizeof(T) * m_maxSize);	// Explicitly set 0 to all elements in the array
-			std::cout << "Array Constructor." << std::endl;
 			
 		}
 	}
@@ -66,6 +67,17 @@ public:
 	{
 		assert(m_array != nullptr && index < m_numElements);
 		return m_array[index];
+	}
+	// Display
+	void DisplayContents()
+	{
+		cout << "\n--------------------------------\n";
+		cout << "Contents inside Array: ";
+		for (int i = 0; i < m_numElements; i++)
+		{
+			cout << m_array[i] << " ";
+		}
+		cout << "\n--------------------------------\n";
 	}
 	// Clear
 	void clear()
@@ -129,6 +141,8 @@ public:
 		m_array = temp;
 		temp = nullptr;
 
+		cout << "\nGrowing Array by: " << m_growSize << endl << endl;
+
 		m_maxSize += m_growSize;
 		m_growSize *= 2;
 
@@ -149,10 +163,9 @@ public:
 
 	// Constructor 
 
-	OrderedArray(int size) : Array<T>(size)
+	OrderedArray(int size, bool isDupesAllowed) : Array<T>(size)
 	{
-		std::cout << "Ordered Constructor." << std::endl;
-		m_dupesAllowed = false;
+		m_dupesAllowed = isDupesAllowed;
 	};
 
 	// Gets and Sets
@@ -172,7 +185,7 @@ public:
 
 		if (((binarySearch(val, 0, this->m_numElements - 1)) != -1) && !GetDupesAllowed())	// Duplicate Check
 		{
-			std::cout << std::endl << std::endl << "Duplicate data found! Unable to enter value: " << val << std::endl << std::endl;
+			std::cout << std::endl << "Duplicate data found! Unable to enter value: " << val << std::endl << std::endl;
 			return;
 		}
 
@@ -196,6 +209,8 @@ public:
 		{
 			this->m_array[k] = this->m_array[k - 1];
 		}
+
+		cout << "Adding the value: " << val << " to Array.\n";
 
 		// Step 3: Insert val into the array at index
 		this->m_array[i] = val;
@@ -268,7 +283,7 @@ private:
 public:
 	// Constructor 
 
-	UnorderedArray(int size) : Array<T>(size) { std::cout << "Unordered Constructor." << std::endl; };
+	UnorderedArray(int size) : Array<T>(size) {};
 
 	// Insertion
 	// Fast insertion for UnorderedArray -- Big-O is O(1)
@@ -280,6 +295,8 @@ public:
 		{
 			Array<T>::Expand();
 		}
+
+		cout << "Adding the value: " << val << " to Array.\n";
 
 		// My array has space for a new value. Let's add it!
 		Array<T>::m_array[Array<T>::m_numElements] = val;
